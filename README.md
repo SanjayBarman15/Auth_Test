@@ -114,7 +114,7 @@ Follow these steps to set up the project locally.
 
     ```
     PORT=8080
-    MONGODB_URI=mongodb+srv://zircon:zircon1234@test.go07blf.mongodb.net/auth-dbuse?retryWrites=true&w=majority&appName=Test
+    MONGODB_URI=mongodb+srv://<YOUR_USER_NAME>:<YOUR_USER_PASSWORD>@test.go07blf.mongodb.net/<YOUR_DATABASE_NAME>?retryWrites=true&w=majority&appName=Test
     JWT_SECRET=your_super_secret_jwt_key
     FRONTEND_URL=http://localhost:3000
     NODE_ENV=development
@@ -171,7 +171,7 @@ Deploying this project to Vercel requires deploying the backend and frontend as 
     - **Output Directory:** `.`
     - **Install Command:** `npm install`
 5.  **Add Environment Variables** (in Vercel project settings):
-    - `MONGODB_URI`: Your MongoDB Atlas connection string (e.g., `mongodb+srv://zircon:zircon1234@test.go07blf.mongodb.net/auth-dbuse?retryWrites=true&w=majority&appName=Test`)
+    - `MONGODB_URI`: Your MongoDB Atlas connection string (e.g., `mongodb+srv://<YOUR_USER_NAME>:<YOUR_USER_PASSWORD>@test.go07blf.mongodb.net/<YOUR_DATABASE_NAME>?retryWrites=true&w=majority&appName=Test`)
     - `JWT_SECRET`: A strong, random secret key.
     - `PORT`: `8080` (or desired port)
     - `FRONTEND_URL`: Your deployed frontend URL (e.g., `https://auth-test-ui-eight.vercel.app` - **you will get this after deploying the frontend first**).
