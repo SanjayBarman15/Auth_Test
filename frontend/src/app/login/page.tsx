@@ -12,7 +12,7 @@ export default function LoginPage() {
       <AuthForm type="login" onSubmit={login} error={error} />
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/signup"
             className="font-medium text-indigo-600 hover:text-indigo-500"
