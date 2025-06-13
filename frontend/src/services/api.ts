@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://auth-test-api-test.vercel.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export interface AuthResponse {
   user: {
