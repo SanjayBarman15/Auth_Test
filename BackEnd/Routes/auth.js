@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const User = require("../Models/User");
-const auth = require("../Middlewares/Auth");
+const User = require("../Models/userModel");
+const { protect } = require("../Middlewares/AuthMiddleware");
 
 // Signup route
 router.post("/signup", async (req, res) => {
@@ -23,7 +23,7 @@ router.post("/signup", async (req, res) => {
     console.log("User created successfully:", email);
 
     // Generate token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
@@ -42,15 +42,15 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     console.log("Login attempt:", { email });
 
-    // Find user
-    const user = await User.findOne({ email });
+    // Find user and include password
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       console.log("User not found:", email);
       return res.status(401).json({ error: "Invalid login credentials" });
     }
 
     // Check password
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await user.matchPassword(password);
     console.log("Password match:", isMatch);
 
     if (!isMatch) {
@@ -59,7 +59,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
     console.log("Login successful:", email);
@@ -72,7 +72,7 @@ router.post("/login", async (req, res) => {
 });
 
 // Get current user route (protected)
-router.get("/me", auth, async (req, res) => {
+router.get("/me", protect, async (req, res) => {
   res.json({ user: { email: req.user.email, name: req.user.name } });
 });
 

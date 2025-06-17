@@ -7,10 +7,13 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import ApiService, {
+import {
   AuthResponse,
   LoginCredentials,
   SignupCredentials,
+  login,
+  signup,
+  getCurrentUser,
 } from "@/services/api";
 import Cookies from "js-cookie";
 
@@ -19,6 +22,7 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (credentials: SignupCredentials) => Promise<void>;
   logout: () => void;
@@ -33,14 +37,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const isAuthenticated = !!token && !!user;
+
   useEffect(() => {
     // Check for token in cookies on mount
     const storedToken = Cookies.get("token");
     if (storedToken) {
       setToken(storedToken);
       // Fetch user data
-      ApiService.getCurrentUser(storedToken)
-        .then((data) => {
+      getCurrentUser(storedToken)
+        .then((data: AuthResponse) => {
           setUser(data.user);
         })
         .catch(() => {
@@ -57,18 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const handleLogin = async (credentials: LoginCredentials) => {
     try {
       setError(null);
-      const response = await ApiService.login(credentials);
+      const response = await login(credentials);
       setUser(response.user);
       setToken(response.token);
-      // Store token in cookie with 24h expiry
       Cookies.set("token", response.token, {
         expires: 1,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
+      localStorage.setItem("token", response.token);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -76,18 +82,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (credentials: SignupCredentials) => {
+  const handleSignup = async (credentials: SignupCredentials) => {
     try {
       setError(null);
-      const response = await ApiService.signup(credentials);
+      const response = await signup(credentials);
       setUser(response.user);
       setToken(response.token);
-      // Store token in cookie with 24h expiry
       Cookies.set("token", response.token, {
         expires: 1,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
+      localStorage.setItem("token", response.token);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
@@ -97,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     Cookies.remove("token");
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
     router.push("/login");
@@ -104,7 +111,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, error, login, signup, logout }}
+      value={{
+        user,
+        token,
+        loading,
+        error,
+        isAuthenticated,
+        login: handleLogin,
+        signup: handleSignup,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

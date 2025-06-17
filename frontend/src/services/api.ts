@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+import axios from "axios";
 
 export interface AuthResponse {
   user: {
@@ -17,58 +17,50 @@ export interface SignupCredentials extends LoginCredentials {
   name?: string;
 }
 
-class ApiService {
-  private static getHeaders(token?: string) {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add a request interceptor to include the auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
     if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return headers;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  static async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(credentials),
-    });
+// Auth methods
+export const login = async (
+  credentials: LoginCredentials
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>("/api/auth/login", credentials);
+  return response.data;
+};
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Login failed");
-    }
+export const signup = async (
+  credentials: SignupCredentials
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>(
+    "/api/auth/signup",
+    credentials
+  );
+  return response.data;
+};
 
-    return response.json();
-  }
+export const getCurrentUser = async (token: string): Promise<AuthResponse> => {
+  const response = await api.get<AuthResponse>("/api/auth/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
 
-  static async signup(credentials: SignupCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_URL}/auth/signup`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(credentials),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Signup failed");
-    }
-
-    return response.json();
-  }
-
-  static async getCurrentUser(token: string) {
-    const response = await fetch(`${API_URL}/auth/me`, {
-      headers: this.getHeaders(token),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to get user data");
-    }
-
-    return response.json();
-  }
-}
-
-export default ApiService;
+export default api;

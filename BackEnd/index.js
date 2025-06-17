@@ -5,6 +5,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const authRoutes = require("./Routes/auth");
 const ProductRouter = require("./Routes/ProductRouter");
+const todoRoutes = require("./Routes/todoRoutes");
 
 const app = express();
 
@@ -29,6 +30,7 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/products", ProductRouter);
+app.use("/api/todos", todoRoutes);
 
 // Basic route for testing
 app.get("/", (req, res) => {
