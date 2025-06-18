@@ -42,19 +42,22 @@ api.interceptors.request.use(
 export const login = async (
   credentials: LoginCredentials
 ): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>("/auth/login", credentials);
+  const response = await api.post<AuthResponse>("/api/auth/login", credentials);
   return response.data;
 };
 
 export const signup = async (
   credentials: SignupCredentials
 ): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>("/auth/signup", credentials);
+  const response = await api.post<AuthResponse>(
+    "/api/auth/signup",
+    credentials
+  );
   return response.data;
 };
 
 export const getCurrentUser = async (token: string): Promise<AuthResponse> => {
-  const response = await api.get<AuthResponse>("/auth/me", {
+  const response = await api.get<AuthResponse>("/api/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
